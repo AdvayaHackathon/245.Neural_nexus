@@ -1,88 +1,129 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
+import { FaPaperPlane, FaExclamationTriangle } from 'react-icons/fa';
+import { SignInButton } from '@clerk/clerk-react';
 
-const Chat = ({ isDarkMode }) => {
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hi there! I'm Manas, your mental health assistant. How are you feeling today?", time: "08:50 PM", sender: 'bot' },
-    { id: 2, text: "That's completely normal to feel that way. Many people go through similar experiences.", time: "08:51 PM", sender: 'bot' },
-  ]);
-  const [inputMessage, setInputMessage] = useState('');
-  const navigate = useNavigate();
+const Chat = ({ isDarkMode, isSignedIn }) => {
+  const [query, setQuery] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [warning, setWarning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
 
+  const modeClass = isDarkMode
+    ? 'bg-gray-900 text-white'
+    : 'bg-gradient-to-b from-[#e6f0fa] to-white text-gray-800';
+  const inputBg = isDarkMode ? 'bg-gray-800' : 'bg-white';
+  const inputText = isDarkMode ? 'text-gray-200' : 'text-gray-900';
+  const buttonBg = isDarkMode ? 'bg-indigo-600' : 'bg-indigo-700';
+  const buttonHoverBg = isDarkMode ? 'hover:bg-indigo-500' : 'hover:bg-indigo-800';
+  const messageUserBg = isDarkMode ? 'bg-indigo-700' : 'bg-indigo-100';
+  const messageBotBg = isDarkMode ? 'bg-gray-800' : 'bg-white';
+  const borderColor = isDarkMode ? 'border-gray-700' : 'border-gray-200';
+  const accentColor = isDarkMode ? 'text-indigo-300' : 'text-indigo-600';
+
+  // Scroll to bottom of chat
   useEffect(() => {
-    const chatContainer = document.getElementById('chat-container');
-    if (chatContainer) {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (inputMessage.trim()) {
-      setMessages([...messages, { id: messages.length + 1, text: inputMessage, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }), sender: 'user' }]);
-      setInputMessage('');
-      // Simulate bot response
-      setTimeout(() => {
-        setMessages(prevMessages => [...prevMessages, { id: prevMessages.length + 1, text: "Thanks for sharing! How can I assist you further?", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }), sender: 'bot' }]);
-      }, 1000);
+    if (!query.trim()) return;
+
+    // Add user message
+    setMessages((prev) => [...prev, { text: query, sender: 'user' }]);
+    setQuery('');
+    setLoading(true);
+
+    try {
+      const response = await axios.post('http://localhost:5000/predict', { query });
+      const { response: botResponse, warning } = response.data;
+
+      // Add bot message
+      setMessages((prev) => [...prev, { text: botResponse, sender: 'bot' }]);
+      setWarning(warning);
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages((prev) => [
+        ...prev,
+        { text: 'Sorry, something went wrong. Please try again.', sender: 'bot' },
+      ]);
+      setWarning(false);
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const accentColor = isDarkMode ? 'indigo-300' : 'indigo-600';
-  const cardBg = isDarkMode ? 'bg-gray-900' : 'bg-white';
-  const cardText = isDarkMode ? 'text-gray-200' : 'text-gray-900';
-  const cardSubText = isDarkMode ? 'text-gray-400' : 'text-gray-600';
-  const buttonBg = isDarkMode ? 'indigo-700' : 'indigo-600';
-  const buttonHoverBg = isDarkMode ? 'indigo-600' : 'indigo-700';
-  const borderColor = isDarkMode ? 'indigo-500' : 'indigo-600';
-
-  const handleBack = () => {
-    navigate('/');
   };
 
   return (
-    <div className={`min-h-screen ${cardBg} flex flex-col`}>
-      {/* Header with Back Button */}
-      
-
-      {/* Chat Area */}
-      <div className="flex-1 p-4 overflow-y-auto" id="chat-container">
-        {messages.map((message) => (
-          <div key={message.id} className={`mb-2 ${message.sender === 'bot' ? 'text-left' : 'text-right'}`}>
-            <div className={`inline-block p-2 rounded-lg ${message.sender === 'bot' ? `bg-${buttonBg} text-white` : `${isDarkMode ? 'bg-gray-700' : 'bg-indigo-100'} text-${cardText}`}`}>
-              {message.text}
+    <div className={`min-h-screen ${modeClass} flex flex-col items-center justify-center p-6`}>
+      <div className="max-w-2xl w-full">
+        <h2 className="text-3xl font-bold mb-6 text-center">
+          Chat with <span className={accentColor}>Manas</span>
+        </h2>
+        {isSignedIn ? (
+          <>
+            <div
+              className={`h-[60vh] overflow-y-auto mb-4 p-4 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} border ${borderColor}`}
+            >
+              {messages.length === 0 && (
+                <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  Start the conversation with Manas! Share how you're feeling.
+                </p>
+              )}
+              {messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-xs p-3 rounded-lg ${
+                      msg.sender === 'user' ? messageUserBg : messageBotBg
+                    } ${msg.sender === 'user' ? 'text-gray-800' : isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+              {warning && (
+                <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg flex items-center">
+                  <FaExclamationTriangle className="mr-2" />
+                  It seems you mentioned something serious. Please consider reaching out to a professional or trusted person for support.
+                </div>
+              )}
+              <div ref={chatEndRef} />
             </div>
-            <div className={`text-xs ${cardSubText} mt-1`}>{message.time}</div>
+            <form onSubmit={handleSubmit} className="flex items-center">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="How are you feeling today?"
+                className={`flex-1 p-3 rounded-l-lg ${inputBg} ${inputText} border ${borderColor} focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                disabled={loading}
+              />
+              <button
+                type="submit"
+                className={`p-3 ${buttonBg} ${buttonHoverBg} text-white rounded-r-lg transition-colors duration-200 disabled:opacity-50`}
+                disabled={loading}
+              >
+                {loading ? '...' : <FaPaperPlane />}
+              </button>
+            </form>
+          </>
+        ) : (
+          <div className="text-center">
+            <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+              Please sign in to chat with Manas and access personalized mental health support.
+            </p>
+            <SignInButton mode="modal">
+              <button className={`px-6 py-3 rounded-lg text-white ${buttonBg} ${buttonHoverBg} transition-colors duration-200`}>
+                Sign In to Chat
+              </button>
+            </SignInButton>
           </div>
-        ))}
+        )}
       </div>
-
-      {/* Input Area */}
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-${borderColor} flex">
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          placeholder="How can I help you?"
-          className={`flex-1 p-2 rounded-l-lg ${cardBg} border border-${borderColor} text-${cardText} focus:outline-none`}
-        />
-        <button
-          type="submit"
-          className={`px-4 py-2 rounded-r-lg ${buttonBg} text-white hover:bg-${buttonHoverBg} transition-colors duration-200`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={`ml-2 px-4 py-2 rounded ${buttonBg} text-white hover:bg-${buttonHoverBg} transition-colors duration-200`}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-          </svg>
-        </button>
-      </form>
     </div>
   );
 };
