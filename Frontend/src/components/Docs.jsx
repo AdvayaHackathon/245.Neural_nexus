@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-// import NavBar from "@/components/layout/NavBar"; // Uncommented and assumed to exist
-// import Footer from "@/components/layout/Footer"; // Uncommented and assumed to exist
+// import NavBar from "@/components/layout/NavBar"; // Uncommented
+// import Footer from "@/components/layout/Footer"; // Uncommented
 
 const Docs = ({ isDarkMode }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
   const resources = [
     {
       title: "5 Effective Techniques to Manage Anxiety for GenZ Students",
       image: "https://via.placeholder.com/300x200?text=Anxiety+Techniques",
       category: "Anxiety",
-      time: "6 min read",
+      time: "5 min read",
       link: "#",
     },
     {
@@ -36,22 +39,29 @@ const Docs = ({ isDarkMode }) => {
     {
       title: "The Impact of Social Media on Mental Health",
       image: "https://via.placeholder.com/300x200?text=Social+Media",
-      category: "Social Health",
+      category: "Depression",
       time: "8 min read",
       link: "#",
     },
     {
       title: "Mindfulness for Beginners: Simple Daily Practices",
       image: "https://via.placeholder.com/300x200?text=Mindfulness",
-      category: "Mindfulness",
+      category: "Stress",
       time: "5 min read",
       link: "#",
     },
   ];
 
+  // Filter resources based on search term and category
+  const filteredResources = resources.filter((resource) => {
+    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || resource.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-[#f0f7ff] text-gray-800'} flex flex-col`}>
-      {/* <NavBar /> */}
+      <NavBar />
       <main className="flex-1">
         {/* Hero Section */}
         <section className="py-16 px-4 text-center">
@@ -61,21 +71,50 @@ const Docs = ({ isDarkMode }) => {
               Explore our curated collection of mental health resources, articles, and expert advice.
             </p>
             <div className="flex justify-center mb-8">
-              <select className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-2 rounded-l-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} focus:outline-none`}>
-                <option>Blog Articles</option>
-                <option>Expert Psychiatrists</option>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-2 rounded-l-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} focus:outline-none`}
+              >
+                <option>All</option>
+                <option>Anxiety</option>
+                <option>Depression</option>
+                <option>Stress</option>
+                <option>Sleep</option>
               </select>
               <input
                 type="text"
                 placeholder="Search articles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className={`${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} p-2 rounded-r-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-300'} focus:outline-none w-1/2 md:w-1/3`}
               />
             </div>
             <div className="flex justify-center space-x-4 text-sm">
-              <span className={isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'}>Anxiety</span>
-              <span className={isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'}>Depression</span>
-              <span className={isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'}>Stress</span>
-              <span className={isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'}>Sleep</span>
+              <button
+                onClick={() => setCategoryFilter('Anxiety')}
+                className={`${isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'} ${categoryFilter === 'Anxiety' ? (isDarkMode ? 'text-indigo-400' : 'text-indigo-600') : ''} transition-colors duration-200`}
+              >
+                Anxiety
+              </button>
+              <button
+                onClick={() => setCategoryFilter('Depression')}
+                className={`${isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'} ${categoryFilter === 'Depression' ? (isDarkMode ? 'text-indigo-400' : 'text-indigo-600') : ''} transition-colors duration-200`}
+              >
+                Depression
+              </button>
+              <button
+                onClick={() => setCategoryFilter('Stress')}
+                className={`${isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'} ${categoryFilter === 'Stress' ? (isDarkMode ? 'text-indigo-400' : 'text-indigo-600') : ''} transition-colors duration-200`}
+              >
+                Stress
+              </button>
+              <button
+                onClick={() => setCategoryFilter('Sleep')}
+                className={`${isDarkMode ? 'text-gray-500 hover:text-indigo-400' : 'text-gray-600 hover:text-indigo-600'} ${categoryFilter === 'Sleep' ? (isDarkMode ? 'text-indigo-400' : 'text-indigo-600') : ''} transition-colors duration-200`}
+              >
+                Sleep
+              </button>
             </div>
           </div>
         </section>
@@ -83,10 +122,10 @@ const Docs = ({ isDarkMode }) => {
         {/* Resources Grid */}
         <section className="py-12 px-4">
           <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {resources.map((resource, index) => (
+            {filteredResources.map((resource, index) => (
               <div
                 key={index}
-                className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow`}
+                className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2`}
               >
                 <img
                   src={resource.image}
@@ -96,8 +135,8 @@ const Docs = ({ isDarkMode }) => {
                 <div className="p-4">
                   <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'} mb-2`}>{resource.title}</h3>
                   <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-600'} text-sm mb-2`}>{resource.category}</p>
-                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-xs`}>{resource.time}</p>
-                  <Link to={resource.link} className={`${isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-500'} mt-2 inline-block`}>
+                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-500'} text-xs mb-2`}>{resource.time}</p>
+                  <Link to={resource.link} className={`${isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-500'} mt-2 inline-block transition-colors duration-200`}>
                     Read More <span aria-hidden="true">→</span>
                   </Link>
                 </div>

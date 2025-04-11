@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Route, Routes, Link } from 'react-router-dom';
+import { Route, Routes, Link, useNavigate } from 'react-router-dom';
 import About from './components/About';
+import Docs from './components/Docs';
+import Chat from './components/Chat';
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false); // Default to light mode to match sample image
+  const navigate = useNavigate();
 
   const toggleMode = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const openChat = () => {
+    navigate('/chat');
   };
 
   const modeClass = isDarkMode
@@ -27,34 +34,46 @@ const App = () => {
   return (
     <div className={`min-h-screen font-sans ${modeClass} overflow-x-hidden`}>
       {/* Header */}
-      <header className="sticky top-0 flex justify-between items-center p-4 max-w-7xl mx-auto z-10 bg-opacity-90 backdrop-blur-md">
+      <header className="sticky top-0 flex justify-between items-center p-4 max-w-7xl mx-auto z-50 bg-opacity-90 backdrop-blur-md">
         <div className="flex items-center space-x-2">
-          <span className={`text-2xl font-bold ${accentColor}`}>A</span>
-          <h1 className={`text-xl font-semibold ${cardText}`}>ArogyaMind</h1>
+          <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-500 text-white text-lg font-bold`}>A</span>
+          <h1 className={`text-xl font-semibold ${accentColor}`}>ArogyaMind</h1>
         </div>
-        <nav className="space-x-6">
-          <Link to="/" className={`hover:underline ${accentColor}`}>Home</Link>
-          <Link to="/about" className={`hover:underline ${accentColor}`}>About</Link>
-          <a href="#documentation" className={`hover:underline ${accentColor}`}>Documentation</a>
-          <a href="#assist" className={`hover:underline ${accentColor}`}>Assist Doctor</a>
-          <a href="#login" className={`hover:underline ${accentColor}`}>Sign In</a>
+        <nav className="flex items-center space-x-6">
+          <Link to="/" className={`text-gray-600 hover:${accentColor} transition-colors duration-200 flex items-center`}>
+            <span className="mr-1">🏠</span> Home
+          </Link>
+          <Link to="/about" className={`text-gray-600 hover:${accentColor} transition-colors duration-200 flex items-center`}>
+            <span className="mr-1">ⓘ</span> About
+          </Link>
+          <Link to="/docs" className={`text-gray-600 hover:${accentColor} transition-colors duration-200 flex items-center`}>
+            <span className="mr-1">📄</span> Documentation
+          </Link>
+          <Link to="/assist" className={`text-gray-600 hover:${accentColor} transition-colors duration-200 flex items-center`}>
+            <span className="mr-1">👨‍⚕️</span> Assist Doctor
+          </Link>
+          <button
+            className={`bg-${buttonBg} text-white px-4 py-2 rounded-full hover:bg-${buttonHoverBg} transition-colors duration-200`}
+          >
+            Sign In
+          </button>
         </nav>
-        <div className="space-x-4 flex items-center">
-          <button className={`text-${isDarkMode ? 'gray-300' : 'gray-500'} hover:text-${isDarkMode ? 'gray-200' : 'gray-700'}`}>
-            🇬🇧
-          </button>
-          <button className={`text-${isDarkMode ? 'gray-300' : 'gray-500'} hover:text-${isDarkMode ? 'gray-200' : 'gray-700'}`}>
-            🇮🇳
-          </button>
-          <button className={`text-${isDarkMode ? 'gray-300' : 'gray-500'} hover:text-${isDarkMode ? 'gray-200' : 'gray-700'}`}>
-            🔍
-          </button>
+        <div className="flex items-center space-x-4">
           <button
             onClick={toggleMode}
-            className={`ml-4 px-3 py-1 rounded ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-${isDarkMode ? 'gray-600' : 'gray-300'}`}
+            className={`px-3 py-1 rounded ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-gray-200 text-gray-800'} hover:bg-${isDarkMode ? 'gray-600' : 'gray-300'} transition-colors duration-200`}
           >
             {isDarkMode ? 'Light Mode' : 'Dark Mode'}
           </button>
+          <a href="https://github.com" className="text-gray-600 hover:text-gray-800 transition-colors duration-200">
+            <span>🐱</span>
+          </a>
+          <a href="https://linkedin.com" className="text-gray-600 hover:text-gray-800 transition-colors duration-200">
+            <span>ℹ</span>
+          </a>
+          <a href="https://twitter.com" className="text-gray-600 hover:text-gray-800 transition-colors duration-200">
+            <span>🐦</span>
+          </a>
         </div>
       </header>
 
@@ -79,15 +98,16 @@ const App = () => {
                     Experience personalized AI mental health support designed for GenZ and young adults. Talk with Manas, our intelligent AI assistant, access resources, and track your well-being journey.
                   </p>
                   <div className="space-x-4">
-                  <button 
-                  className={`px-6 py-3 rounded-lg text-white transition-colors duration-200 ${
-                    isDarkMode 
-                    ? 'bg-indigo-600 hover:bg-indigo-500' 
-                    : 'bg-indigo-700 hover:bg-indigo-800'
-                  }`}
-                  >
+                    <button 
+                      onClick={openChat}
+                      className={`px-6 py-3 rounded-lg text-white transition-colors duration-200 ${
+                        isDarkMode 
+                        ? 'bg-indigo-600 hover:bg-indigo-500' 
+                        : 'bg-indigo-700 hover:bg-indigo-800'
+                      }`}
+                    >
                       Start Chatting
-                  </button>
+                    </button>
                     <button className={`bg-transparent ${accentColor} px-6 py-3 rounded-lg border border-${borderColor} hover:bg-${hoverBg} transition-colors duration-200`}>
                       Learn More
                     </button>
@@ -138,7 +158,10 @@ const App = () => {
                   Join thousands of GenZ individuals who have transformed their mental health with ArogyaMind's AI-powered support system.
                 </p>
                 <div className="space-x-4">
-                  <button className={`bg-${buttonBg} text-white px-6 py-3 rounded-lg hover:bg-${buttonHoverBg} transition-colors duration-200`}>
+                  <button 
+                    onClick={openChat}
+                    className={`bg-${buttonBg} text-white px-6 py-3 rounded-lg hover:bg-${buttonHoverBg} transition-colors duration-200`}
+                  >
                     Start Chatting Now
                   </button>
                   <button className={`bg-transparent ${accentColor} px-6 py-3 rounded-lg border border-${borderColor} hover:bg-${hoverBg} transition-colors duration-200`}>
@@ -185,6 +208,8 @@ const App = () => {
           }
         />
         <Route path="/about" element={<About isDarkMode={isDarkMode} />} />
+        <Route path="/docs" element={<Docs isDarkMode={isDarkMode} />} />
+        <Route path="/chat" element={<Chat isDarkMode={isDarkMode} />} />
       </Routes>
     </div>
   );
