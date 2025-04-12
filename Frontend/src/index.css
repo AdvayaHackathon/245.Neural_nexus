@@ -132,7 +132,7 @@ button:focus-visible {
 }
 
 .voice-btn:hover {
-  @apply bg-opacity-80 transform scale-105;
+  @apply opacity-80 transform scale-105;
 }
 
 .voice-btn:active {

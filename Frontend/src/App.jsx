@@ -74,7 +74,7 @@ const App = () => {
               <div className="flex items-center space-x-2">
                 <div className="relative">
                   <img
-                    src={user.profileImageUrl || ''}
+                    src={user.profileImageUrl || 'https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ydmJGTjFSV2tNWlRKQ3dzRjFpSFZ3V2xQcXoifQ?width=96'}
                     alt="Profile"
                     className="w-8 h-8 rounded-full object-cover"
                     onError={(e) => {
