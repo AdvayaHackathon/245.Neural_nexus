@@ -5,6 +5,7 @@ import { useUser, SignInButton, SignOutButton } from '@clerk/clerk-react';
 import About from './components/About';
 import Docs from './components/Docs';
 import Chat from './components/Chat';
+import TypingAnimation from './components/TypingAnimations';
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -109,7 +110,7 @@ const App = () => {
                         ArogyaMind
                       </span>
                       <br />
-                      <span className={`text-${accentColor}`} style={{ fontSize: '0.75em' }}>AI-Pow</span>
+                      <TypingAnimation isDarkMode={isDarkMode} />
                     </h1>
                     <p className={`${cardSubText} text-lg`}>
                       Experience personalized AI mental health support designed for GenZ and young adults. Talk with Manas, our intelligent AI assistant, access resources, and track your well-being journey.

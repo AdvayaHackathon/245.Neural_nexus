@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { FaPaperPlane, FaExclamationTriangle } from 'react-icons/fa';
-import { SignInButton } from '@clerk/clerk-react';
+import { SignInButton, useUser } from '@clerk/clerk-react';
+
+// Placeholder image for Manas (replace with your own if desired)
+const MANAS_AVATAR = 'https://images.unsplash.com/photo-1599508704512-2f19efd1e35f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8YW55fGVufDB8fDB8fHww'; // Indigo avatar
 
 const Chat = ({ isDarkMode, isSignedIn }) => {
   const [query, setQuery] = useState('');
@@ -9,6 +12,7 @@ const Chat = ({ isDarkMode, isSignedIn }) => {
   const [warning, setWarning] = useState(false);
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
+  const { user } = useUser(); // Fetch user data from Clerk
 
   const modeClass = isDarkMode
     ? 'bg-gray-900 text-white'
@@ -31,7 +35,6 @@ const Chat = ({ isDarkMode, isSignedIn }) => {
     e.preventDefault();
     if (!query.trim()) return;
 
-    // Add user message
     setMessages((prev) => [...prev, { text: query, sender: 'user' }]);
     setQuery('');
     setLoading(true);
@@ -40,7 +43,6 @@ const Chat = ({ isDarkMode, isSignedIn }) => {
       const response = await axios.post('http://localhost:5000/predict', { query });
       const { response: botResponse, warning } = response.data;
 
-      // Add bot message
       setMessages((prev) => [...prev, { text: botResponse, sender: 'bot' }]);
       setWarning(warning);
     } catch (error) {
@@ -56,44 +58,64 @@ const Chat = ({ isDarkMode, isSignedIn }) => {
   };
 
   return (
-    <div className={`min-h-screen ${modeClass} flex flex-col items-center justify-center p-6`}>
-      <div className="max-w-2xl w-full">
-        <h2 className="text-3xl font-bold mb-6 text-center">
-          Chat with <span className={accentColor}>Manas</span>
-        </h2>
+    <div className={`fixed inset-0 ${modeClass} flex flex-col pt-20`}>
+      {/* Chat Container */}
+      <div className="flex-1 flex flex-col w-full h-full">
+        {/* Header */}
+        <div className={`p-4 border-b ${borderColor}`}>
+          <h2 className="text-2xl font-bold text-center">
+            Chat with <span className={accentColor}>Manas</span>
+          </h2>
+        </div>
+
+        {/* Chat Area */}
         {isSignedIn ? (
           <>
-            <div
-              className={`h-[60vh] overflow-y-auto mb-4 p-4 rounded-lg shadow-lg ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} border ${borderColor}`}
-            >
+            <div className={`flex-1 overflow-y-auto p-4 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
               {messages.length === 0 && (
-                <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'} mt-10`}>
                   Start the conversation with Manas! Share how you're feeling.
                 </p>
               )}
               {messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex items-start mb-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
+                  {msg.sender === 'bot' && (
+                    <img
+                      src={MANAS_AVATAR}
+                      alt="Manas Avatar"
+                      className="w-10 h-10 rounded-full mr-3"
+                    />
+                  )}
                   <div
-                    className={`max-w-xs p-3 rounded-lg ${
+                    className={`max-w-xs md:max-w-md p-3 rounded-lg ${
                       msg.sender === 'user' ? messageUserBg : messageBotBg
                     } ${msg.sender === 'user' ? 'text-gray-800' : isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
                   >
                     {msg.text}
                   </div>
+                  {msg.sender === 'user' && user && (
+                    <img
+                      src={user.profileImageUrl || 'https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ydmJGTjFSV2tNWlRKQ3dzRjFpSFZ3V2xQcXoifQ?width=96 '}
+                      alt="User Avatar"
+                      className="w-10 h-10 rounded-full ml-3"
+                    />
+                  )}
                 </div>
               ))}
               {warning && (
-                <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg flex items-center">
+                <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-lg flex items-center mx-auto max-w-md">
                   <FaExclamationTriangle className="mr-2" />
                   It seems you mentioned something serious. Please consider reaching out to a professional or trusted person for support.
                 </div>
               )}
               <div ref={chatEndRef} />
             </div>
-            <form onSubmit={handleSubmit} className="flex items-center">
+
+            {/* Input Area */}
+            <form onSubmit={handleSubmit} className={`flex items-center p-4 border-t ${borderColor}`}>
               <input
                 type="text"
                 value={query}
@@ -112,15 +134,17 @@ const Chat = ({ isDarkMode, isSignedIn }) => {
             </form>
           </>
         ) : (
-          <div className="text-center">
-            <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
-              Please sign in to chat with Manas and access personalized mental health support.
-            </p>
-            <SignInButton mode="modal">
-              <button className={`px-6 py-3 rounded-lg text-white ${buttonBg} ${buttonHoverBg} transition-colors duration-200`}>
-                Sign In to Chat
-              </button>
-            </SignInButton>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className={`text-lg ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} mb-4`}>
+                Please sign in to chat with Manas and access personalized mental health support.
+              </p>
+              <SignInButton mode="modal">
+                <button className={`px-6 py-3 rounded-lg text-white ${buttonBg} ${buttonHoverBg} transition-colors duration-200`}>
+                  Sign In to Chat
+                </button>
+              </SignInButton>
+            </div>
           </div>
         )}
       </div>
