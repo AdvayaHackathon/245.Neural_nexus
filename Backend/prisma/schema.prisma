@@ -1,0 +1,9 @@
+model ChatHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  messages  String   // Store messages as JSON string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+} 
