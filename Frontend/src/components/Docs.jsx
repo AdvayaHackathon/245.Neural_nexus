@@ -1,110 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 const Docs = ({ isDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [resources, setResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const resources = [
-    {
-      id: 1,
-      title: "5 Effective Techniques to Manage Anxiety for GenZ Students",
-      description: "Learn practical strategies to cope with anxiety during exams, social situations, and daily life. These evidence-based techniques can help you regain control.",
-      category: "Anxiety",
-      time: "5 min read",
-      minutes: "5 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 2,
-      title: "Recognizing Depression: Signs You Shouldn't Ignore",
-      description: "Depression often goes unnoticed, especially in young adults. Discover the early warning signs and learn when it's time to seek professional help.",
-      category: "Depression",
-      time: "7 min read",
-      minutes: "7 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 3,
-      title: "Quick Stress-Reduction Techniques for Busy Students",
-      description: "Finding time for self-care can be challenging during busy academic periods. These quick techniques can help you manage stress in just minutes.",
-      category: "Stress",
-      time: "4 min read",
-      minutes: "9 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 4,
-      title: "Improving Sleep Quality: A Guide for Night Owls",
-      description: "Late-night scrolling and irregular sleep patterns can affect your mental health. Learn how to develop better sleep habits without disrupting your lifestyle.",
-      category: "Sleep",
-      time: "6 min read",
-      minutes: "10 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 5,
-      title: "The Impact of Social Media on Mental Health",
-      description: "Social media has transformed how we connect, but it can also affect our well-being. Discover healthy ways to use social platforms without negative impacts.",
-      category: "Depression",
-      time: "8 min read",
-      minutes: "11 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 6,
-      title: "Mindfulness for Beginners: Simple Daily Practices",
-      description: "Mindfulness doesn't require hours of meditation. Learn how to incorporate simple mindful moments into your busy schedule for better mental health.",
-      category: "Stress",
-      time: "5 min read",
-      minutes: "12 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    // Additional resources
-    {
-      id: 7,
-      title: "Coping with Panic Attacks: A Step-by-Step Guide",
-      description: "Learn what to do when panic strikes with these immediate coping strategies and long-term prevention techniques.",
-      category: "Anxiety",
-      time: "6 min read",
-      minutes: "6 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 8,
-      title: "Building Resilience: Strategies for Tough Times",
-      description: "Develop mental toughness and emotional resilience to better handle life's challenges and setbacks.",
-      category: "Stress",
-      time: "7 min read",
-      minutes: "13 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1493612276216-ee3925520721?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    },
-    {
-      id: 9,
-      title: "The Science of Sleep: Optimizing Your Rest",
-      description: "Understand the sleep cycles and how to maximize your rest for better mental and physical health.",
-      category: "Sleep",
-      time: "8 min read",
-      minutes: "14 minutes",
-      link: "#",
-      image: "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
-    }
-  ];
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        // Using NewsAPI to fetch mental health articles
+        const response = await axios.get('https://newsapi.org/v2/everything', {
+          params: {
+            q: 'mental health OR mental wellness OR mental wellbeing',
+            language: 'en',
+            sortBy: 'publishedAt',
+            pageSize: 10,
+            apiKey: import.meta.env.VITE_NEWS_API_KEY
+          }
+        });
 
-  const filteredResources = resources.filter((resource) => {
-    const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         resource.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || resource.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+        setResources(response.data.articles.map(article => ({
+          id: article.url,
+          title: article.title,
+          description: article.description || 'Read more about this mental health topic...',
+          category: 'Mental Health',
+          time: '5 min read',
+          minutes: '5 minutes',
+          link: article.url,
+          image: article.urlToImage || 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
+        })));
+      } catch (err) {
+        setError('Failed to fetch articles. Please try again later.');
+        // Fallback to some default articles if API fails
+        setResources([
+          {
+            id: 1,
+            title: "Understanding Anxiety: A Comprehensive Guide",
+            description: "Learn about the different types of anxiety, their symptoms, and effective coping strategies.",
+            category: "Anxiety",
+            time: "5 min read",
+            minutes: "5 minutes",
+            link: "https://www.mentalhealth.org.uk/explore-mental-health/a-z-topics/anxiety",
+            image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
+          },
+          {
+            id: 2,
+            title: "Depression: Signs, Symptoms, and Treatment Options",
+            description: "A detailed look at depression, its impact on daily life, and available treatment methods.",
+            category: "Depression",
+            time: "7 min read",
+            minutes: "7 minutes",
+            link: "https://www.nimh.nih.gov/health/topics/depression",
+            image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80"
+          }
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, [categoryFilter]);
+
+  const filteredResources = resources.filter(resource => 
+    resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    resource.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-[#f0f7ff]'} p-6`}>
@@ -136,30 +101,64 @@ const Docs = ({ isDarkMode }) => {
               </svg>
             </div>
           </div>
+
+          {/* Category Filter */}
+          <div className="mt-4 flex justify-center space-x-4">
+            {['All', 'Anxiety', 'Depression', 'Stress', 'Mindfulness', 'Self-Care'].map(category => (
+              <button
+                key={category}
+                onClick={() => setCategoryFilter(category)}
+                className={`px-3 py-1 rounded-full text-sm ${
+                  categoryFilter === category
+                    ? isDarkMode
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-indigo-100 text-indigo-700'
+                    : isDarkMode
+                      ? 'text-gray-400 hover:text-white'
+                      : 'text-gray-600 hover:text-indigo-600'
+                }`}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center h-64">
+            <div className={`animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 ${isDarkMode ? 'border-indigo-500' : 'border-indigo-600'}`}></div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className={`p-4 rounded-lg ${isDarkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'} text-center mb-8`}>
+            {error}
+          </div>
+        )}
+
         {/* Resources Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredResources.map((resource) => (
-            <div 
+            <div
               key={resource.id}
-              className={`rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl ${isDarkMode ? 'bg-gray-800 hover:bg-gray-750' : 'bg-white hover:bg-gray-50'} group`}
+              className={`rounded-xl overflow-hidden shadow-lg transition-transform duration-200 hover:scale-105 ${
+                isDarkMode ? 'bg-gray-800' : 'bg-white'
+              }`}
             >
-              {/* Image with gradient overlay */}
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={resource.image} 
+              <div className="relative h-48">
+                <img
+                  src={resource.image}
                   alt={resource.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                <div className="absolute bottom-4 left-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${isDarkMode ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-800'}`}>
-                    {resource.category}
-                  </span>
+                <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs ${
+                  isDarkMode ? 'bg-indigo-900 text-indigo-200' : 'bg-indigo-100 text-indigo-700'
+                }`}>
+                  {resource.category}
                 </div>
               </div>
-              
               <div className="p-6">
                 <div className="flex justify-between items-center mb-3">
                   <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -170,7 +169,9 @@ const Docs = ({ isDarkMode }) => {
                   </span>
                 </div>
                 
-                <h3 className={`text-xl font-bold mb-3 group-hover:text-indigo-500 transition-colors ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
+                <h3 className={`text-xl font-bold mb-3 group-hover:text-indigo-500 transition-colors ${
+                  isDarkMode ? 'text-white' : 'text-gray-800'
+                }`}>
                   {resource.title}
                 </h3>
                 
@@ -180,7 +181,13 @@ const Docs = ({ isDarkMode }) => {
                 
                 <Link 
                   to={resource.link}
-                  className={`inline-flex items-center font-medium ${isDarkMode ? 'text-indigo-400 hover:text-indigo-300' : 'text-indigo-600 hover:text-indigo-500'} transition-colors group-hover:underline`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`inline-flex items-center font-medium ${
+                    isDarkMode
+                      ? 'text-indigo-400 hover:text-indigo-300'
+                      : 'text-indigo-600 hover:text-indigo-500'
+                  } transition-colors group-hover:underline`}
                 >
                   Read More
                   <svg 
@@ -197,27 +204,6 @@ const Docs = ({ isDarkMode }) => {
             </div>
           ))}
         </div>
-
-        {/* Empty State */}
-        {filteredResources.length === 0 && (
-          <div className={`p-12 text-center rounded-xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className={`h-16 w-16 mx-auto mb-4 ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className={`text-xl font-medium mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              No resources found
-            </h3>
-            <p className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-              Try adjusting your search or filter criteria
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

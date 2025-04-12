@@ -2,15 +2,23 @@ import React, { useState } from 'react';
 import { Route, Routes, Link, useNavigate } from 'react-router-dom';
 import { FaHome, FaInfoCircle, FaBook, FaUserMd, FaUser, FaMoon, FaGithub, FaLinkedin, FaTwitter } from 'react-icons/fa';
 import { useUser, SignInButton, SignOutButton } from '@clerk/clerk-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import About from './components/About';
 import Docs from './components/Docs';
 import Chat from './components/Chat';
+import Assist from './components/Assist';
 import TypingAnimation from './components/TypingAnimations';
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
-  const { isSignedIn } = useUser();
+  const { isSignedIn, user } = useUser();
+
+  // Dummy data for wellness trend
+  const wellnessData = Array.from({ length: 30 }, (_, i) => ({
+    day: i + 1,
+    wellness: Math.floor(Math.random() * 40) + 60, // Random values between 60-100
+  }));
 
   const toggleMode = () => {
     setIsDarkMode(!isDarkMode);
@@ -62,7 +70,22 @@ const App = () => {
             <FaUserMd className="mr-1" /> Assist Doctor
           </Link>
           {isSignedIn ? (
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <img
+                    src={user.profileImageUrl || 'https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ydmJGTjFSV2tNWlRKQ3dzRjFpSFZ3V2xQcXoifQ?width=96'}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.src = 'https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvb2F1dGhfZ29vZ2xlL2ltZ18ydmJGTjFSV2tNWlRKQ3dzRjFpSFZ3V2xQcXoifQ?width=96';
+                    }}
+                  />
+                </div>
+                <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  {user.firstName || user.username || 'User'}
+                </span>
+              </div>
               <SignOutButton>
                 <button className={`flex items-center bg-${buttonBg} text-white px-4 py-2 rounded-full hover:bg-${buttonHoverBg} transition-colors duration-200 hover:scale-105`}>
                   <FaUser className="mr-1" /> Sign Out
@@ -131,7 +154,41 @@ const App = () => {
                     <div className={`${cardBg} p-6 rounded-lg shadow-lg border ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
                       <h3 className={`${cardText} text-lg font-semibold mb-2`}>Mental Health Improvement</h3>
                       <p className={`${cardSubText} text-sm mb-4`}>30-day wellness trend analysis</p>
-                      <div className={`w-full h-64 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded`}></div>
+                      <div className="w-full h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart
+                            data={wellnessData}
+                            margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                            <XAxis 
+                              dataKey="day" 
+                              stroke={isDarkMode ? '#9ca3af' : '#4b5563'}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <YAxis 
+                              domain={[0, 100]}
+                              stroke={isDarkMode ? '#9ca3af' : '#4b5563'}
+                              tick={{ fontSize: 12 }}
+                            />
+                            <Tooltip 
+                              contentStyle={{
+                                backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                                border: isDarkMode ? '1px solid #374151' : '1px solid #e5e7eb',
+                                color: isDarkMode ? '#ffffff' : '#000000'
+                              }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="wellness"
+                              stroke={isDarkMode ? '#818cf8' : '#4f46e5'}
+                              strokeWidth={2}
+                              dot={false}
+                              activeDot={{ r: 6, fill: isDarkMode ? '#818cf8' : '#4f46e5', stroke: 'white', strokeWidth: 2 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
                     </div>
                   </div>
                 </section>
@@ -221,7 +278,7 @@ const App = () => {
           <Route path="/about" element={<About isDarkMode={isDarkMode} />} />
           <Route path="/docs" element={<Docs isDarkMode={isDarkMode} />} />
           <Route path="/chat" element={<Chat isDarkMode={isDarkMode} isSignedIn={isSignedIn} />} />
-          <Route path="/assist" element={<div className={`min-h-screen ${modeClass} p-6`}><h2 className={cardText}>Assist Doctor</h2><p className={cardSubText}>Feature coming soon!</p></div>} />
+          <Route path="/assist" element={<Assist isDarkMode={isDarkMode} />} />
         </Routes>
       </main>
     </div>
